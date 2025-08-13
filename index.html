@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  /* =============== THEME TOKENS =============== */
+  :root { /* base (dark) */
+    --bg:#0b0f14; --card:#121923; --muted:#9fb1c7; --text:#e7eef7;
+    --accent:#5cc8ff; --danger:#ff7b7b; --ok:#7bffb2;
+    --q-border:#29435c; --opt-border:#2b3747; --opt-checked:#5cc8ff;
+    --warn:#ffd36e; --line:#1e2a39;
+    /* input glass defaults (dark-ish) */
+    --input-bg: rgba(18,25,35,.60);
+    --input-bg-hover: rgba(18,25,35,.75);
+    --input-bg-focus: rgba(18,25,35,.85);
+    --btn-bg: #1b2532;
+    --btn-bg-hover: #222e3e;
+  }
+
+  /* explicit dark hook (ใช้ค่าเดียวกับ :root เพื่อให้เลือก "ธีม: Dark" แล้วไม่งง) */
+  [data-theme="dark"]{
+    --bg:#0b0f14; --card:#121923; --muted:#9fb1c7; --text:#e7eef7;
+    --accent:#5cc8ff; --danger:#ff7b7b; --ok:#7bffb2;
+    --q-border:#29435c; --opt-border:#2b3747; --opt-checked:#5cc8ff;
+    --warn:#ffd36e; --line:#1e2a39;
+    --input-bg: rgba(18,25,35,.60);
+    --input-bg-hover: rgba(18,25,35,.75);
+    --input-bg-focus: rgba(18,25,35,.85);
+    --btn-bg: #1b2532;
+    --btn-bg-hover: #222e3e;
+  }
+
+  /* Modern light */
+  [data-theme="light"]{
+    --bg:#f6f9ff; --card:#ffffff; --muted:#5b6472; --text:#0b1726;
+    --accent:#1d4ed8; --danger:#e11d48; --ok:#059669;
+    --q-border:#e7eef8; --opt-border:#e5e7eb; --opt-checked:#1d4ed8;
+    --warn:#b45309; --line:#e9eef6;
+    --input-bg: rgba(255,255,255,.60);
+    --input-bg-hover: rgba(255,255,255,.75);
+    --input-bg-focus: rgba(255,255,255,.85);
+    --btn-bg:#f8fbff; --btn-bg-hover:#eef4fb;
+  }
+
+  /* Optional extra themes */
+  [data-theme="midnight"]{
+    --bg:#0a0e1a; --card:#121a2a; --muted:#a0aec0; --text:#e2e8f0;
+    --accent:#6366f1; --danger:#f87171; --ok:#34d399;
+    --q-border:#1f2937; --opt-border:#2d3748; --opt-checked:#6366f1;
+    --warn:#fbbf24; --line:#1a202c;
+    --input-bg: rgba(18,25,35,.65);
+    --input-bg-hover: rgba(18,25,35,.78);
+    --input-bg-focus: rgba(18,25,35,.88);
+    --btn-bg:#162239; --btn-bg-hover:#1a2a45;
+  }
+
+  [data-theme="forest"]{
+    --bg:#0f1f17; --card:#1a2e24; --muted:#a3b9a6; --text:#ecfdf5;
+    --accent:#10b981; --danger:#f87171; --ok:#84cc16;
+    --q-border:#1f3d2c; --opt-border:#294536; --opt-checked:#10b981;
+    --warn:#fbbf24; --line:#1c3228;
+    --input-bg: rgba(26,46,36,.65);
+    --input-bg-hover: rgba(26,46,36,.78);
+    --input-bg-focus: rgba(26,46,36,.88);
+    --btn-bg:#1b342b; --btn-bg-hover:#204034;
+  }
+
+  [data-theme="ocean"]{
+    --bg:#031f2e; --card:#0b2f44; --muted:#a0c4d4; --text:#e0f7fa;
+    --accent:#0284c7; --danger:#f87171; --ok:#14b8a6;
+    --q-border:#0e3a53; --opt-border:#164a63; --opt-checked:#0284c7;
+    --warn:#fbbf24; --line:#0a3147;
+    --input-bg: rgba(11,47,68,.65);
+    --input-bg-hover: rgba(11,47,68,.78);
+    --input-bg-focus: rgba(11,47,68,.88);
+    --btn-bg:#0e3a53; --btn-bg-hover:#13455f;
+  }
+
+  /* =============== BASE LAYOUT =============== */
+  html,body{height:100%}
+  body{
+    margin:0; color:var(--text); background:var(--bg);
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+    background-image: linear-gradient(180deg,var(--bg),rgba(0,0,0,.12) 40%,var(--bg));
+  }
+  /* light gradient enhancement */
+  [data-theme="light"] body{
+    background-image: linear-gradient(180deg,#f8fbff,#eef4fb 45%,#f8fbff);
+  }
+
+  .container{max-width:1200px;margin:24px auto;padding:20px}
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:20px;
+    box-shadow:0 10px 30px rgba(0,0,0,.15); padding:18px;
+  }
+  [data-theme="light"] .card{
+    box-shadow:0 10px 30px rgba(0,16,61,.06),0 1px 0 rgba(0,0,0,.02);
+  }
+
+  h1,h2{margin:0 0 12px}
+  h1{font-size:24px;letter-spacing:.2px}
+  .muted{color:var(--muted)}
+  .controls{display:grid;grid-template-columns:repeat(12,1fr);gap:12px;align-items:end}
+  .field{display:flex;flex-direction:column;gap:6px}
+  label{font-size:12px;color:var(--muted)}
+  .hidden{display:none}
+
+  /* =============== INPUTS (glass + fallback) =============== */
+  :where(input[type="number"],input[type="text"],input[type="search"],input[type="url"],select){
+    background: var(--input-bg);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); /* เพิ่มความฟุ้งเล็กน้อย */
+    border:1px solid var(--opt-border);
+    color:var(--text);
+    padding:10px 12px; border-radius:14px; outline:none;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.18),
+      inset 0 -2px 6px rgba(0,0,0,.08),
+      0 1px 2px rgba(0,0,0,.06);
+    transition: box-shadow .18s, border-color .18s, transform .06s, background .18s;
+  }
+  :where(input,select):hover{ background: var(--input-bg-hover); transform: translateY(-0.5px); }
+  :where(input,select):focus{
+    background: var(--input-bg-focus);
+    border-color: var(--accent);
+    box-shadow:
+      0 0 0 3px rgba(93, 148, 255, .15),
+      inset 0 1px 0 rgba(255,255,255,.2),
+      inset 0 -3px 8px rgba(0,0,0,.12);
+  }
+  /* ใช้ color-mix ถ้ารองรับ เพื่อเนียนขึ้น */
+  @supports (color: color-mix(in srgb, #000 50%, #fff)) {
+    :where(input,select){
+      border-color: color-mix(in srgb, var(--line) 60%, transparent);
+    }
+    :where(input,select):focus{
+      box-shadow:
+        0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent),
+        inset 0 1px 0 rgba(255,255,255,.2),
+        inset 0 -3px 8px rgba(0,0,0,.12);
+    }
+  }
+
+  /* =============== BUTTONS =============== */
+  .btn{
+    appearance:none; cursor:pointer; user-select:none;
+    border:1px solid var(--line);
+    background: var(--btn-bg);
+    color:var(--text);
+    padding:10px 14px; border-radius:16px; font-weight:700;
+    transition: transform .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease;
+  }
+  .btn:hover{ transform: translateY(-1px); background: var(--btn-bg-hover); border-color: var(--accent); }
+  .btn:active{ transform: translateY(0); }
+  .btn.primary{
+    border-color: color-mix(in srgb, var(--accent) 60%, var(--line));
+    background: linear-gradient(180deg,
+      color-mix(in srgb, var(--accent) 28%, var(--card)),
+      color-mix(in srgb, var(--card) 85%, #000 15%)
+    );
+  }
+  .btn.ghost{ background: transparent; }
+  .btn.danger{ border-color: color-mix(in srgb, var(--danger) 60%, var(--line)); }
+  .btn.ok{ border-color: color-mix(in srgb, var(--ok) 60%, var(--line)); }
+  .status-inline{display:inline-block;margin-left:10px;font-size:12px;color:var(--muted)}
+  .nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .tabs{display:flex;gap:8px}
+
+  /* =============== EXAM GRID =============== */
+  .sheet{margin-top:18px}
+  .sheet-head{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .grid{display:grid;grid-template-columns:repeat(1,1fr);gap:12px}
+  @media (min-width:640px){ .grid{grid-template-columns:repeat(2,1fr)} }
+  @media (min-width:1100px){ .grid{grid-template-columns:repeat(3,1fr)} }
+
+  .q-card{
+    background: color-mix(in srgb, var(--card) 96%, #000 4%);
+    border:2px solid var(--q-border); border-radius:18px; padding:12px;
+  }
+  .q-title{
+    display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;
+    border-bottom:1px dashed var(--line); padding-bottom:8px;
+  }
+  .q-title .num{
+    display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;
+    border-radius:12px;background:color-mix(in srgb, var(--card) 90%, #000 10%);
+    border:2px solid var(--line); font-weight:800;
+  }
+
+  .opts{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+  .opt{position:relative}
+  .opt input{position:absolute;inset:0;opacity:0}
+  .opt label{
+    display:flex;align-items:center;justify-content:center;
+    border:2px solid var(--opt-border); border-radius:14px; padding:12px 0;
+    background:color-mix(in srgb, var(--card) 92%, #000 8%);
+    cursor:pointer; font-weight:700; letter-spacing:.3px;
+    transition: border-color .18s, box-shadow .18s, background .18s;
+  }
+  .opt input:checked + label{
+    border-color:var(--opt-checked);
+    box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent) inset;
+  }
+  .opt input:focus-visible + label{ outline:2px solid var(--accent) }
+  .opt input:disabled + label{
+    opacity:.55; cursor:not-allowed; filter:grayscale(.25);
+  }
+
+  .req{color:var(--danger);font-size:12px;display:none}
+  .q-card.missing .req{display:block}
+
+  .pill{font-size:12px;padding:6px 10px;border-radius:999px;background:color-mix(in srgb, var(--card) 92%, #000 8%);border:1px solid var(--line)}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap}
+  .footer{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+  .summary{font-size:13px;color:var(--muted)}
+
+  /* =============== TIMER BANNER =============== */
+  .banner{position:sticky;top:0;z-index:40;margin-bottom:12px}
+  .banner .box{
+    display:flex;align-items:center;gap:12px;border-radius:12px;padding:10px 12px;border:1px solid var(--line);
+    background:linear-gradient(180deg,color-mix(in srgb, var(--card) 96%, #000 4%), color-mix(in srgb, var(--card) 88%, #000 12%));
+  }
+  .banner .warn{
+    border-color:color-mix(in srgb, var(--warn) 60%, var(--line));
+    background:linear-gradient(180deg,color-mix(in srgb, #ffde8a 18%, var(--card)), color-mix(in srgb, var(--card) 92%, #000 8%));
+    color:#2a1e00;
+  }
+  .clock{position:relative;width:46px;height:46px}
+  .clock svg{transform:rotate(-90deg)}
+  .clock .timeText{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+
+  /* =============== RESULT PAGE =============== */
+  .result-hero{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:32px 16px;text-align:center}
+  .result-badge{font-size:14px;padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:color-mix(in srgb, var(--card) 92%, #000 8%)}
+  .result-title{font-size:32px;font-weight:900;letter-spacing:.5px}
+  .result-pass{color:var(--ok)}
+  .result-fail{color:var(--danger)}
+  table{width:100%;border-collapse:collapse}
+  th,td{border:1px solid var(--line);padding:6px 8px;text-align:left}
+  th{background:color-mix(in srgb, var(--card) 92%, #000 8%)}
+  td input{width:100%;box-sizing:border-box}
+
+  /* =============== COLLAPSIBLE PREVIEW =============== */
+  .collapsible-head{display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer}
+  .chev{transition:transform .18s ease}
+  /* แก้ตำแหน่ง class ให้ลูกศรหมุนจากหัวพรีวิวจริง ๆ */
+  .collapsed .chev{transform:rotate(-90deg)}
+
+  /* =============== ACCESSIBILITY & PREFS =============== */
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none!important; animation:none!important}
+  }
+  @media (forced-colors: active){
+    .q-title .num, .pill, .btn{border:1px solid ButtonText}
+  }
+  
+</style>
+
+</head>
+<body>
+  <div class="container">
+    <div class="nav">
+      <div class="tabs">
+        <button class="btn" id="tabSetup">หน้า Setup</button>
+        <button class="btn" id="tabExam">หน้าทำข้อสอบ</button>
+        <button class="btn" id="tabResult">หน้าแสดงผลสอบ</button>
+      </div>
+      <div class="toolbar">
+        <label class="muted" for="themeSelect">ธีม:</label>
+        <select id="themeSelect">
+          <option value="dark">ธีม: Dark</option>
+          <option value="midnight">ธีม: Midnight</option>
+          <option value="forest">ธีม: Forest</option>
+          <option value="ocean">ธีม: Ocean</option>
+          <option value="light" selected>ธีม: Light</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- ================= SETUP VIEW ================= -->
+    <section id="viewSetup">
+      <div class="card">
+        <h1>ตั้งค่ากระดาษคำตอบ <span class="muted">— แสดงเฉพาะตัวเลือก</span></h1>
+        <div class="controls">
+          <div class="field" style="grid-column: span 3">
+            <label for="subject">รายวิชา</label>
+            <input id="subject" type="text" placeholder="เช่น คณิตศาสตร์ ม.3" />
+          </div>
+          <div class="field" style="grid-column: span 2">
+            <label for="passPct">เกณฑ์ผ่าน (%)</label>
+            <input id="passPct" type="number" min="1" max="100" value="60" />
+          </div>
+          <div class="field" style="grid-column: span 2">
+            <label for="duration">เวลาทำ (นาที)</label>
+            <input id="duration" type="number" min="1" max="999" value="30" />
+          </div>
+          <div class="field" style="grid-column: span 3">
+            <label for="paperCode">รหัสกระดาษ</label>
+            <input id="paperCode" type="text" placeholder="เช่น SET-A" />
+          </div>
+          <div class="field" style="grid-column: span 2">
+            <label for="questionCount">จำนวนข้อ</label>
+            <input id="questionCount" type="number" min="1" max="300" value="50" />
+          </div>
+          <div class="field" style="grid-column: span 3">
+            <label for="optionSet">ชุดตัวเลือก</label>
+            <select id="optionSet">
+              <option value="1-4">1, 2, 3, 4</option>
+              <option value="1-5" selected>1, 2, 3, 4, 5</option>
+              <option value="A-D">A, B, C, D</option>
+              <option value="A-E">A, B, C, D, E</option>
+              <option value="TH-4">ก, ข, ค, ง</option>
+              <option value="TH-5">ก, ข, ค, ง, จ</option>
+            </select>
+          </div>
+          <div class="field" style="grid-column: span 3">
+            <button id="btnGenerate" class="btn">สร้างกระดาษ</button><span id="genStatus" class="status-inline" aria-live="polite"></span>
+          </div>
+          <div class="field" style="grid-column: span 12"><hr style="border:none;border-top:1px solid var(--line)"></div>
+
+          <div class="field" style="grid-column: span 12">
+            <div class="collapsible-head" id="previewToggle">
+              <h2 style="margin:0">เฉลย (CSV / Google Sheet)</h2>
+              <span class="chev">▶</span>
+            </div>
+          </div>
+          <div class="field" style="grid-column: span 6">
+            <label for="keyFile">นำเข้าไฟล์ CSV (คอลัมน์ Question, Answer) <span id="keyFileName" class="muted"></span></label>
+            <input id="keyFile" type="file" accept=".csv,text/csv" />
+          </div>
+          <div class="field" style="grid-column: span 6">
+            <label for="keyUrl">หรือ URL Google Sheet (CSV export / published)</label>
+            <input id="keyUrl" type="url" placeholder="เช่น https://docs.google.com/spreadsheets/d/.../pub?output=csv" />
+          </div>
+          <div class="field" style="grid-column: span 2"><button id="btnFetchKey" class="btn">ดึงเฉลยจาก URL</button></div>
+          <div class="field" style="grid-column: span 2"><button id="btnManualKey" class="btn">สร้างเฉลย (แก้เอง)</button></div>
+          <div class="field" style="grid-column: span 2"><button id="btnApplyKey" class="btn ok">บันทึกเฉลย</button></div>
+          <div class="field" style="grid-column: span 2"><button id="btnClearKey" class="btn ghost">ล้างเฉลย</button></div>
+        </div>
+        <div id="keyPreviewWrap" class="hidden">
+          <div class="summary" id="keyLockMsg" style="margin:6px 0"></div>
+          <div style="max-height:300px;overflow:auto">
+            <table id="keyTable">
+              <thead><tr><th>Question</th><th>Answer</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="footer">
+          <div class="summary">กด "สร้างกระดาษ" แล้วไปหน้า "ทำข้อสอบ" เพื่อเริ่มทำ</div>
+          <div class="toolbar">
+            <button id="btnGoExam" class="btn primary">ไปหน้าทำข้อสอบ</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ประวัติการทำรายวิชา -->
+      <div class="card" style="margin-top:12px">
+        <h2 style="margin:0 0 8px">ประวัติการทำ (รายวิชา)</h2>
+        <div class="controls" style="margin-bottom:8px">
+          <div class="field" style="grid-column: span 4">
+            <label for="histSubject">กรองตามรายวิชา</label>
+            <input id="histSubject" type="search" placeholder="พิมพ์ชื่อวิชา หรือเว้นว่างเพื่อแสดงทั้งหมด" />
+          </div>
+          <div class="field" style="grid-column: span 2">
+            <button id="btnRefreshHist" class="btn">รีเฟรชประวัติ</button>
+          </div>
+          <div class="field" style="grid-column: span 3">
+            <button id="btnClearHistory" class="btn danger">ล้างประวัติทั้งหมด</button>
+          </div>
+          <div class="field" style="grid-column: span 3">
+            <button id="btnExportResultCSV" class="btn">บันทึกผลเป็น CSV</button>
+          </div>
+        </div>
+        <div style="max-height:260px;overflow:auto">
+          <table id="histTable">
+            <thead><tr><th>เวลา</th><th>รายวิชา</th><th>รหัส</th><th>คะแนน</th><th>ผล</th><th>ใช้เวลา</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= EXAM VIEW ================= -->
+    <section id="viewExam" class="hidden">
+      <div class="banner" id="timeBanner">
+        <div class="box" id="timeBox">
+          <div class="clock" aria-hidden="true">
+            <svg viewBox="0 0 36 36" width="46" height="46">
+              <circle cx="18" cy="18" r="16" fill="none" stroke="var(--line)" stroke-width="4"/>
+              <circle id="progressCircle" cx="18" cy="18" r="16" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-dasharray="100 100" stroke-dashoffset="0"/>
+            </svg>
+            <div class="timeText" id="timeText">--:--</div>
+          </div>
+          <span id="timeStatus">⏳ ยังไม่เริ่มจับเวลา</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h1>หน้าทำข้อสอบ</h1>
+        <div class="toolbar" style="margin-bottom:8px">
+          <button id="btnStartTimer" class="btn primary">เริ่มจับเวลา</button>
+          <button id="btnPauseTimer" class="btn">หยุดเวลา</button>
+          <button id="btnValidate" class="btn">ตรวจข้อที่ยังไม่ตอบ</button>
+          <button id="btnClear" class="btn ghost">ล้างคำตอบ</button>
+          <button id="btnSubmit" class="btn ok">ส่งคำตอบ</button>
+        </div>
+        <div class="pill" id="sheetInfo">-</div>
+        <div class="sheet" id="sheet"></div>
+        <div class="footer">
+          <div class="summary" id="summary">ยังไม่ได้สร้างกระดาษ</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= RESULT VIEW ================= -->
+    <section id="viewResult" class="hidden">
+      <div class="card">
+        <div class="result-hero">
+          <div class="result-badge" id="resBadge">รายวิชา — <span id="resSubject">-</span> · รหัส <span id="resCode">-</span></div>
+          <div id="resTitle" class="result-title">ผลสอบ</div>
+          <div id="resDetail" class="muted">-</div>
+          <div class="toolbar" style="margin-top:6px">
+            <button id="btnBackToSetup" class="btn">กลับไปหน้า Setup</button>
+            <button id="btnNewExam" class="btn primary">เริ่มทำข้อสอบใหม่</button>
+          </div>
+        </div>
+
+        <table>
+          <thead><tr><th>สรุป</th><th>ค่า</th></tr></thead>
+          <tbody>
+            <tr><td>คะแนน</td><td id="resScore">-</td></tr>
+            <tr><td>เปอร์เซ็นต์</td><td id="resPct">-</td></tr>
+            <tr><td>เกณฑ์ผ่าน</td><td id="resPassPct">-</td></tr>
+            <tr><td>ผลการประเมิน</td><td id="resPassed">-</td></tr>
+            <tr><td>เวลาใช้ไป</td><td id="resDuration">-</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // =====================
+    // Utilities & State
+    // =====================
+    const optionSets = {
+      '1-4': ['1','2','3','4'],
+      '1-5': ['1','2','3','4','5'],
+      'A-D': ['A','B','C','D'],
+      'A-E': ['A','B','C','D','E'],
+      'TH-4': ['ก','ข','ค','ง'],
+      'TH-5': ['ก','ข','ค','ง','จ'],
+    };
+
+    const els = {
+      // navigation & theme
+      tabSetup: document.getElementById('tabSetup'),
+      tabExam: document.getElementById('tabExam'),
+      tabResult: document.getElementById('tabResult'),
+      viewSetup: document.getElementById('viewSetup'),
+      viewExam: document.getElementById('viewExam'),
+      viewResult: document.getElementById('viewResult'),
+      themeSelect: document.getElementById('themeSelect'),
+
+      // setup controls
+      subject: document.getElementById('subject'),
+      passPct: document.getElementById('passPct'),
+      duration: document.getElementById('duration'),
+      count: document.getElementById('questionCount'),
+      set: document.getElementById('optionSet'),
+      code: document.getElementById('paperCode'),
+      generate: document.getElementById('btnGenerate'),
+      genStatus: document.getElementById('genStatus'),
+      goExam: document.getElementById('btnGoExam'),
+
+      // preview collapse
+      previewToggle: document.getElementById('previewToggle'),
+
+      // exam controls
+      startTimer: document.getElementById('btnStartTimer'),
+      pauseTimer: document.getElementById('btnPauseTimer'),
+      submit: document.getElementById('btnSubmit'),
+      sheet: document.getElementById('sheet'),
+      validate: document.getElementById('btnValidate'),
+      clear: document.getElementById('btnClear'),
+      summary: document.getElementById('summary'),
+      sheetInfo: document.getElementById('sheetInfo'),
+
+      // timer / circle (exam banner)
+      timeStatus: document.getElementById('timeStatus'),
+      timeBox: document.getElementById('timeBox'),
+      timeText: document.getElementById('timeText'),
+      progressCircle: document.getElementById('progressCircle'),
+
+      // key import
+      keyFile: document.getElementById('keyFile'),
+      keyFileName: document.getElementById('keyFileName'),
+      keyUrl: document.getElementById('keyUrl'),
+      fetchKey: document.getElementById('btnFetchKey'),
+      applyKey: document.getElementById('btnApplyKey'),
+      clearKey: document.getElementById('btnClearKey'),
+      keyPreviewWrap: document.getElementById('keyPreviewWrap'),
+      keyLockMsg: document.getElementById('keyLockMsg'),
+      keyTable: document.getElementById('keyTable')?.querySelector('tbody'),
+      btnManualKey: document.getElementById('btnManualKey'),
+
+      // history
+      histSubject: document.getElementById('histSubject'),
+      histRefresh: document.getElementById('btnRefreshHist'),
+      histTbody: document.getElementById('histTable')?.querySelector('tbody'),
+      histClear: document.getElementById('btnClearHistory'),
+      exportResultCSV: document.getElementById('btnExportResultCSV'),
+
+      // result view
+      resSubject: document.getElementById('resSubject'),
+      resCode: document.getElementById('resCode'),
+      resTitle: document.getElementById('resTitle'),
+      resScore: document.getElementById('resScore'),
+      resPct: document.getElementById('resPct'),
+      resPassPct: document.getElementById('resPassPct'),
+      resDuration: document.getElementById('resDuration'),
+      resPassed: document.getElementById('resPassed'),
+      btnBackToSetup: document.getElementById('btnBackToSetup'),
+      btnNewExam: document.getElementById('btnNewExam'),
+    };
+
+    const STORAGE_KEY = 'answerSheet:v6';
+    const STORAGE_KEY_KEY = 'answerKey:v1';
+    const HISTORY_KEY = 'answerHistory:v1';
+    const THEME_KEY = 'answerTheme:v2';
+
+    let missingShown = false;
+    let lastResult = null;
+
+    let exam = {
+      active: false,
+      locked: false,
+      paused: false,
+      warnSent: false,
+      startedAt: null,
+      endAt: null,
+      timerId: null,
+      remainSnapshot: 0,
+      lastVisibilityWarn: 0,
+      exitCount: 0,
+      warnBeforeSec: 60,
+      key: {},
+      totalSec: 0,
+      previewLocked: false,
+    };
+
+    // ============== Basic helpers ==============
+    function formatSec(s){ const m = Math.floor(s/60); const ss = s%60; return `${m}:${String(ss).padStart(2,'0')}`; }
+    function escapeHtml(s){ return String(s).replace(/[&<>\"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c])); }
+
+    // ============== Render sheet ==============
+    function getOptions(){ return optionSets[els.set.value] ?? optionSets['1-5']; }
+
+    function createQuestionCard(qNum, opts){
+      const card = document.createElement('div'); card.className = 'q-card'; card.dataset.q = qNum;
+      const title = document.createElement('div'); title.className = 'q-title';
+      const num = document.createElement('div'); num.className = 'num'; num.textContent = qNum;
+      const req = document.createElement('div'); req.className = 'req'; req.textContent = 'ยังไม่เลือกคำตอบ';
+      title.appendChild(num); title.appendChild(req); card.appendChild(title);
+      const grid = document.createElement('div'); grid.className = 'opts';
+      opts.forEach((o, idx) => {
+        const opt = document.createElement('div'); opt.className = 'opt';
+        const input = document.createElement('input'); input.type = 'radio'; input.name = `q${qNum}`; input.id = `q${qNum}_${idx}`; input.value = o; input.disabled = exam.locked;
+        const label = document.createElement('label'); label.setAttribute('for', input.id); label.textContent = o;
+        input.addEventListener('change', () => { card.classList.remove('missing'); saveState(); updateSummary(); });
+        opt.appendChild(input); opt.appendChild(label); grid.appendChild(opt);
+      });
+      card.appendChild(grid); return card;
+    }
+
+    function generateSheet(fromState){
+      const n = Number(els.count.value||0); if (!Number.isFinite(n) || n < 1) return;
+      els.genStatus.textContent = 'กำลังอัปเดต...';
+      els.generate.disabled = true;
+      const opts = getOptions(); els.sheet.innerHTML = '';
+      const info = `ชุดตัวเลือก: ${opts.join(' / ')}${els.code.value ? ' · รหัส: ' + els.code.value : ''}`;
+      els.sheetInfo.textContent = info;
+      const grid = document.createElement('div'); grid.className = 'grid';
+      for (let i=1;i<=n;i++) grid.appendChild(createQuestionCard(i, opts));
+      els.sheet.appendChild(grid);
+      if (fromState) applyAnswers(fromState.answers);
+      updateSummary(); saveState();
+      setTimeout(()=>{ els.genStatus.textContent = 'อัปเดตแล้ว ✓'; els.generate.disabled = false; }, 350);
+    }
+
+    function collectAnswers(){ const cards = [...document.querySelectorAll('.q-card')]; const answers = {}; for (const c of cards){ const q = Number(c.dataset.q); const sel = c.querySelector('input[type=radio]:checked'); answers[q] = sel ? sel.value : ''; } return answers; }
+
+    function saveState(){ const state = { subject: els.subject.value||'', passPct: Number(els.passPct.value||60), duration: Number(els.duration.value||30), count: Number(els.count.value||0), set: els.set.value, code: els.code.value, answers: collectAnswers() }; try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){} }
+    function loadState(){ try{ const raw = localStorage.getItem(STORAGE_KEY); return raw? JSON.parse(raw): null; }catch(e){ return null; } }
+    function applyAnswers(answers={}){ for (const [q,v] of Object.entries(answers)){ if(!v) continue; const input = document.querySelector(`.q-card[data-q="${q}"] input[value="${CSS.escape(v)}"]`); if (input) input.checked = true; } updateSummary(); }
+
+    function updateSummary(){ const total = document.querySelectorAll('.q-card').length; const ans = collectAnswers(); const answered = Object.values(ans).filter(Boolean).length; const missing = total - answered; let timeTxt = ''; if (exam.active){ const now = Date.now(); const remain = Math.max(0, Math.ceil((exam.endAt - now)/1000)); timeTxt = ` · เหลือเวลา ${formatSec(remain)}`; updateClock(remain); } else if (exam.locked) timeTxt = ' · 🔒 ล็อกคำตอบ'; els.summary.textContent = `ตอบแล้ว ${answered}/${total} ข้อ · เหลือ ${missing} ข้อ${timeTxt}`; }
+
+    function toggleMissing(){ missingShown = !missingShown; const ans = collectAnswers(); for (const [q, v] of Object.entries(ans)){ const el = document.querySelector(`.q-card[data-q="${q}"]`); if (!v && missingShown) el.classList.add('missing'); else el.classList.remove('missing'); } updateSummary(); }
+
+    // ============== Key (CSV/Sheet) ==============
+    function parseCSV(text){ const lines = text.trim().split(/\r?\n/); const out=[]; for (let i=0;i<lines.length;i++){ const row = lines[i].split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(s=>s.replace(/^\s*"|"\s*$/g,'').replace(/""/g,'"')); if (row.length>=2){ const q=Number(row[0]); const a=String(row[1]).trim(); if(Number.isFinite(q)) out.push({q,a}); } } return out; }
+    function renderKeyPreview(){ els.keyPreviewWrap.classList.remove('hidden'); els.keyTable.innerHTML=''; const total = Number(els.count.value||0); for (let i=1;i<=total;i++){ const tr=document.createElement('tr'); tr.innerHTML = `<td>${i}</td><td><input value="${exam.key[i]??''}" placeholder="A / 1 / ก"/></td>`; const inp=tr.querySelector('input'); inp.addEventListener('input',()=>{ exam.key[i]=inp.value.trim(); }); els.keyTable.appendChild(tr);} updatePreviewLock(); }
+    function applyKeyObject(obj){ exam.key = {...obj}; try{ localStorage.setItem(STORAGE_KEY_KEY, JSON.stringify(exam.key)); }catch(e){} renderKeyPreview(); }
+    function loadKey(){ try{ const raw=localStorage.getItem(STORAGE_KEY_KEY); return raw? JSON.parse(raw): {}; }catch(e){ return {}; } }
+    async function fetchKeyFromUrl(){ const url = els.keyUrl.value.trim(); if(!url) return alert('กรุณาใส่ URL'); try{ const res = await fetch(url,{cache:'no-store'}); const text = await res.text(); const rows = parseCSV(text); const obj={}; rows.forEach(({q,a})=>obj[q]=a); applyKeyObject(obj); }catch(e){ alert('ดึงเฉลยไม่สำเร็จ: '+e.message);} }
+    function readKeyFromFile(file){ const r=new FileReader(); r.onload=()=>{ try{ const rows=parseCSV(r.result); const obj={}; rows.forEach(({q,a})=>obj[q]=a); applyKeyObject(obj); els.keyFileName.textContent = `(${file.name})`; }catch(e){ alert('อ่านไฟล์ไม่สำเร็จ: '+e.message);} }; r.readAsText(file); }
+    function clearKey(){ exam.key={}; try{ localStorage.removeItem(STORAGE_KEY_KEY);}catch(e){} els.keyPreviewWrap.classList.add('hidden'); els.keyFileName.textContent=''; alert('ล้างเฉลยแล้ว'); }
+
+    function makeManualKey(){ const total=Number(els.count.value||0)||0; const obj={}; for(let i=1;i<=total;i++){ obj[i]=exam.key[i]??''; } applyKeyObject(obj); els.keyFileName.textContent='(กำหนดเอง)'; els.keyPreviewWrap.classList.remove('hidden'); }
+
+    function updatePreviewLock(){
+      const locked = exam.previewLocked || exam.active;
+      const msg = locked ? '🔒 ระหว่างทำข้อสอบจะไม่สามารถดู/แก้เฉลยได้' : 'พรีวิวเฉลย — แก้ไขคอลัมน์ Answer ได้';
+      els.keyLockMsg.textContent = msg;
+      els.keyPreviewWrap.querySelectorAll('input').forEach(i=> i.disabled = locked);
+      if (locked) els.keyPreviewWrap.classList.add('hidden');
+    }
+
+    // ============== Timer ==============
+    function updateClock(remainSec){ const total = exam.totalSec || 1; const pct=Math.max(0,Math.min(1, remainSec/total)); const dash=100*pct; els.progressCircle.setAttribute('stroke-dasharray','100 100'); els.progressCircle.setAttribute('stroke-dashoffset', String(100-dash)); els.timeText.textContent = formatSec(remainSec); if (remainSec<=exam.warnBeforeSec) els.timeBox.classList.add('warn'); }
+
+    function startTimer(){
+      if (exam.active && !exam.paused) return;
+      const durMin = Number(els.duration.value||0);
+      if (!exam.active){
+        exam.startedAt = Date.now();
+        exam.totalSec = durMin*60;
+        exam.endAt = exam.startedAt + exam.totalSec*1000;
+        exam.previewLocked = true;
+        updatePreviewLock();
+      }
+      if (exam.paused && exam.remainSnapshot>0){
+        exam.endAt = Date.now() + exam.remainSnapshot*1000;
+        exam.paused=false;
+      }
+      exam.active=true;
+      els.timeBox.classList.remove('warn');
+      tick();
+      exam.timerId = setInterval(tick, 250);
+      window.addEventListener('beforeunload', beforeUnloadGuard);
+      document.addEventListener('visibilitychange', visibilityWarn);
+      updateSummary();
+    }
+    function pauseTimer(){ if (!exam.active || exam.paused) return; const now=Date.now(); const remain = Math.max(0, Math.ceil((exam.endAt - now)/1000)); exam.remainSnapshot = remain; exam.paused = true; clearInterval(exam.timerId); exam.timerId=null; els.timeStatus.textContent = `⏸ หยุดเวลาไว้ที่ ${formatSec(remain)}`; }
+    function tick(){ const now=Date.now(); const remain = Math.max(0, Math.ceil((exam.endAt - now)/1000)); els.timeStatus.textContent = `⏳ เหลือเวลา ${formatSec(remain)}${exam.locked? ' · 🔒 ล็อกคำตอบ':''}`; updateClock(remain); if (!exam.warnSent && remain===exam.warnBeforeSec){ exam.warnSent=true; alert(`เหลือเวลา ${formatSec(remain)} โปรดตรวจสอบคำตอบให้เรียบร้อย`);} if (remain<=0){ timeUp(); } }
+    function timeUp(){ clearInterval(exam.timerId); exam.timerId=null; exam.active=false; exam.paused=false; setLock(true); els.timeStatus.textContent='⏰ หมดเวลาแล้ว · 🔒 ล็อกคำตอบ'; }
+    function beforeUnloadGuard(e){ if (exam.active){ e.preventDefault(); e.returnValue=''; return ''; } }
+    function visibilityWarn(){ if (!exam.active) return; const now=Date.now(); if (now - exam.lastVisibilityWarn < 1000) return; if (document.hidden){ exam.lastVisibilityWarn = now; exam.exitCount++; if (exam.exitCount>=3){ alert('ออกจากหน้าทำข้อสอบเกิน 3 ครั้ง ระบบจะรีเซ็ตหน้า (ประวัติยังถูกเก็บไว้)'); location.reload(); return; } else { alert(`โปรดอย่าออกจากหน้าทำข้อสอบ (ครั้งที่ ${exam.exitCount}/3)`); } } }
+
+    function setLock(locked){ exam.locked=locked; document.querySelectorAll('.q-card input[type=radio]').forEach(i=>i.disabled=locked); updateSummary(); }
+
+    // ============== Score / Result / History ==============
+    function scoreNow(){ const ans=collectAnswers(); const total=Object.keys(ans).length; let correct=0; for(let i=1;i<=total;i++){ const a=ans[i]||''; const k=(exam.key[i]||'').toString().trim(); if(k && a && a.toUpperCase()===k.toUpperCase()) correct++; } const pct= total>0? Math.round((correct*10000/total))/100:0; const passPct=Number(els.passPct.value||60); const passed=pct>=passPct; return {correct,total,pct,passPct,passed}; }
+
+    function showResultPage(res){
+      els.resSubject.textContent = els.subject.value||'-';
+      els.resCode.textContent = els.code.value||'-';
+      els.resScore.textContent = `${res.correct}/${res.total}`;
+      els.resPct.textContent = `${res.pct}%`;
+      els.resPassPct.textContent = `${res.passPct}%`;
+      const dur = exam.startedAt? Math.round(((exam.endAt && Date.now()>exam.endAt? exam.endAt: Date.now())-exam.startedAt)/1000):0;
+      els.resDuration.textContent = formatSec(dur);
+      const big = res.passed? '🎉 ดีใจด้วยคุณสอบผ่าน':'😔 เสียใจด้วยคุณสอบไม่ผ่าน';
+      els.resTitle.textContent = big;
+      els.resTitle.className = `result-title ${res.passed? 'result-pass':'result-fail'}`;
+      els.resPassed.textContent = res.passed? 'ผ่าน':'ไม่ผ่าน';
+      switchView('result');
+    }
+
+    function saveHistory(res){ const hist = loadHistory(); const durationSec = exam.startedAt? Math.round(((exam.endAt && Date.now()>exam.endAt? exam.endAt: Date.now())-exam.startedAt)/1000):0; const item={ ts:new Date().toISOString(), subject: els.subject.value||'', code: els.code.value||'', pct: res.pct, correct: res.correct, total: res.total, passed: res.passed, duration: durationSec }; hist.push(item); lastResult = item; try{ localStorage.setItem(HISTORY_KEY, JSON.stringify(hist.slice(-500))); }catch(e){} }
+    function loadHistory(){ try{ const raw=localStorage.getItem(HISTORY_KEY); return raw? JSON.parse(raw): []; }catch(e){ return []; } }
+    function renderHistory(){ if (!els.histTbody) return; const q=(els.histSubject?.value||'').toLowerCase(); const hist=loadHistory(); els.histTbody.innerHTML=''; hist.slice().reverse().forEach(h=>{ if(q && !h.subject.toLowerCase().includes(q)) return; const tr=document.createElement('tr'); const okTxt=h.passed?'ผ่าน':'ไม่ผ่าน'; const dur=formatSec(h.duration||0); tr.innerHTML=`<td>${new Date(h.ts).toLocaleString()}</td><td>${escapeHtml(h.subject)}</td><td>${escapeHtml(h.code)}</td><td>${h.correct}/${h.total} (${h.pct}%)</td><td>${okTxt}</td><td>${dur}</td>`; els.histTbody.appendChild(tr); }); }
+    function clearHistory(){ if(!confirm('ยืนยันล้างประวัติทั้งหมด?')) return; try{ localStorage.removeItem(HISTORY_KEY);}catch(e){} renderHistory(); }
+
+    // ============== Navigation & Theme ==============
+    function switchView(which){ els.viewSetup.classList.add('hidden'); els.viewExam.classList.add('hidden'); els.viewResult.classList.add('hidden'); if(which==='setup') els.viewSetup.classList.remove('hidden'); else if(which==='exam') els.viewExam.classList.remove('hidden'); else els.viewResult.classList.remove('hidden'); }
+    function setTheme(val){ document.documentElement.setAttribute('data-theme', val); try{ localStorage.setItem(THEME_KEY,val);}catch(e){} }
+
+    // ============== Events ==============
+    els.tabSetup.addEventListener('click',()=>switchView('setup'));
+    els.tabExam.addEventListener('click',()=>switchView('exam'));
+    els.tabResult.addEventListener('click',()=>switchView('result'));
+    els.themeSelect.addEventListener('change',()=> setTheme(els.themeSelect.value));
+
+    // แก้: toggle ที่หัวพรีวิวเองเพื่อให้ .chev หมุนได้ถูกต้อง
+    els.previewToggle.addEventListener('click',()=>{
+      if (exam.previewLocked || exam.active){ alert('ระหว่างทำข้อสอบไม่สามารถเปิดพรีวิวเฉลยได้'); return; }
+      els.previewToggle.classList.toggle('collapsed');   // << หมุนลูกศร
+      els.keyPreviewWrap.classList.toggle('hidden');     // << ซ่อน/แสดงตาราง
+    });
+
+    els.generate.addEventListener('click',()=> generateSheet());
+    els.goExam.addEventListener('click',()=>{ generateSheet(); switchView('exam'); });
+
+    els.startTimer.addEventListener('click',()=>{ if (!Number(els.duration.value)) return alert('กรุณากำหนดเวลา (นาที)'); startTimer(); });
+    els.pauseTimer.addEventListener('click',()=>{ if (exam.paused){ startTimer(); els.pauseTimer.textContent='หยุดเวลา'; } else { pauseTimer(); els.pauseTimer.textContent='เริ่มต่อ'; } });
+
+    els.validate.addEventListener('click', toggleMissing);
+    els.clear.addEventListener('click',()=>{ if (exam.locked) return; document.querySelectorAll('.q-card input:checked').forEach(i=>i.checked=false); document.querySelectorAll('.q-card').forEach(c=>c.classList.remove('missing')); missingShown=false; saveState(); updateSummary(); });
+
+    els.submit.addEventListener('click', ()=>{ const res = scoreNow(); saveHistory(res); renderHistory(); showResultPage(res); });
+
+    els.keyFile.addEventListener('change', (e)=>{ const f=e.target.files?.[0]; if (f) readKeyFromFile(f); e.target.value=''; });
+    els.fetchKey.addEventListener('click', fetchKeyFromUrl);
+    els.applyKey.addEventListener('click', ()=>{ applyKeyObject(exam.key); alert('บันทึกเฉลยแล้ว'); });
+    els.btnManualKey.addEventListener('click', ()=>{ if (exam.active){ alert('กำลังทำข้อสอบอยู่ ไม่สามารถแก้เฉลยได้'); return; } makeManualKey(); });
+    els.clearKey.addEventListener('click', clearKey);
+
+    els.histRefresh.addEventListener('click', renderHistory);
+    els.histSubject.addEventListener('input', renderHistory);
+    els.histClear.addEventListener('click', clearHistory);
+    els.exportResultCSV.addEventListener('click', ()=>{
+      const last = lastResult || (loadHistory().slice(-1)[0]);
+      if (!last) { alert('ยังไม่มีผลสอบให้บันทึก'); return; }
+      const csv = ['"Subject","Code","Score","Total","Percent","PassPct","Passed","Duration","Timestamp"',
+                   `"${(last.subject||'').replaceAll('"','""')}","${(last.code||'').replaceAll('"','""')}","${last.correct}","${last.total}","${last.pct}","${Number(els.passPct.value||60)}","${last.passed?'ผ่าน':'ไม่ผ่าน'}","${formatSec(last.duration||0)}","${last.ts}"`].join('\n');
+      const name = `result_${(last.code||'sheet')}.csv`;
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+      a.download=name;
+      a.click();
+      setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+    });
+
+    els.btnBackToSetup?.addEventListener('click', ()=> switchView('setup'));
+    els.btnNewExam?.addEventListener('click', ()=>{ switchView('setup'); setTimeout(()=>{ switchView('exam'); startTimer(); }, 50); });
+
+    // ============== Boot ==============
+    (function init(){
+      const savedTheme = localStorage.getItem(THEME_KEY) || 'light';
+      els.themeSelect.value = savedTheme; setTheme(savedTheme);
+      const saved = loadState();
+      if (saved){
+        els.subject.value = saved.subject||'';
+        els.passPct.value = saved.passPct||60;
+        els.duration.value=saved.duration||30;
+        els.count.value=saved.count||50;
+        els.set.value = saved.set||'1-5';
+        els.code.value=saved.code||'';
+        generateSheet(saved);
+      } else {
+        generateSheet();
+      }
+      const keyObj=loadKey();
+      if (Object.keys(keyObj).length){ exam.key=keyObj; renderKeyPreview(); }
+      renderHistory();
+      switchView('setup');
+    })();
+
+    // ============== Developer smoke tests (console) ==============
+    (function tests(){
+      try {
+        console.assert(typeof generateSheet==='function','generateSheet missing');
+        console.assert(typeof renderKeyPreview==='function','renderKeyPreview missing');
+        console.assert(typeof startTimer==='function','startTimer missing');
+        console.assert(typeof pauseTimer==='function','pauseTimer missing');
+        console.assert(typeof scoreNow==='function','scoreNow missing');
+        console.assert(typeof toggleMissing==='function','toggleMissing missing');
+        console.assert(typeof makeManualKey==='function','makeManualKey missing');
+        console.log('%cInline tests passed','color:green');
+      } catch(e){ console.error('Inline tests failed', e); }
+    })();
+  </script>
+</body>
+</html>
